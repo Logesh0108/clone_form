@@ -1,4 +1,30 @@
 const Form = require("../models/Form");
+const fs = require("fs");
+
+const cleanupFiles = (req) => {
+  if (req.files) {
+    if (req.files.aadhaarFile && req.files.aadhaarFile[0]) {
+      const filePath = req.files.aadhaarFile[0].path;
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.error("Failed to delete aadhaarFile:", e);
+        }
+      }
+    }
+    if (req.files.panFile && req.files.panFile[0]) {
+      const filePath = req.files.panFile[0].path;
+      if (fs.existsSync(filePath)) {
+        try {
+          fs.unlinkSync(filePath);
+        } catch (e) {
+          console.error("Failed to delete panFile:", e);
+        }
+      }
+    }
+  }
+};
 
 const createForm = async (req, res) => {
   try {
@@ -29,6 +55,7 @@ const createForm = async (req, res) => {
       !permanentAddress ||
       !email
     ) {
+      cleanupFiles(req);
       return res.status(400).json({
         success: false,
         message: "All fields are required.",
@@ -44,29 +71,31 @@ const createForm = async (req, res) => {
       : "";
 
     if (!aadhaarFile || !panFile) {
+      cleanupFiles(req);
       return res.status(400).json({
         success: false,
         message: "Both files are required.",
       });
     }
 
-const form = await Form.create({
-  fullName,
-  fatherName,
-  aadhaarNumber,
-  aadhaarFile,
-  panNumber,
-  panFile,
-  bankAccountNumber,
-  accountHolderName,
-  ifscCode,
-  phoneNumber,
-  currentAddress,
-  permanentAddress,
-  email,
-});
+    // Mongoose schema will also uppercase them, but let's be safe
+    const form = await Form.create({
+      fullName,
+      fatherName,
+      aadhaarNumber,
+      aadhaarFile,
+      panNumber: panNumber.toUpperCase(),
+      panFile,
+      bankAccountNumber,
+      accountHolderName,
+      ifscCode: ifscCode.toUpperCase(),
+      phoneNumber,
+      currentAddress,
+      permanentAddress,
+      email,
+    });
 
-console.log("Saved Form:", form);
+    console.log("Saved Form:", form);
 
     return res.status(201).json({
       success: true,
@@ -74,7 +103,8 @@ console.log("Saved Form:", form);
       data: form,
     });
   } catch (error) {
-    return res.status(500).json({
+    cleanupFiles(req);
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -123,9 +153,18 @@ const getFormById = async (req, res) => {
 
 const updateForm = async (req, res) => {
   try {
+    // Standardize casing of fields if provided
+    const updateData = { ...req.body };
+    if (updateData.panNumber) {
+      updateData.panNumber = updateData.panNumber.toUpperCase();
+    }
+    if (updateData.ifscCode) {
+      updateData.ifscCode = updateData.ifscCode.toUpperCase();
+    }
+
     const form = await Form.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       {
         new: true,
         runValidators: true,
@@ -145,7 +184,7 @@ const updateForm = async (req, res) => {
       data: form,
     });
   } catch (error) {
-    return res.status(500).json({
+    return res.status(400).json({
       success: false,
       message: error.message,
     });
@@ -154,7 +193,7 @@ const updateForm = async (req, res) => {
 
 const deleteForm = async (req, res) => {
   try {
-    const form = await Form.findByIdAndDelete(req.params.id);
+    const form = await Form.findById(req.params.id);
 
     if (!form) {
       return res.status(404).json({
@@ -162,6 +201,24 @@ const deleteForm = async (req, res) => {
         message: "Form not found.",
       });
     }
+
+    // Delete files first
+    if (form.aadhaarFile && fs.existsSync(form.aadhaarFile)) {
+      try {
+        fs.unlinkSync(form.aadhaarFile);
+      } catch (e) {
+        console.error("Failed to delete Aadhaar file on disk:", e);
+      }
+    }
+    if (form.panFile && fs.existsSync(form.panFile)) {
+      try {
+        fs.unlinkSync(form.panFile);
+      } catch (e) {
+        console.error("Failed to delete PAN file on disk:", e);
+      }
+    }
+
+    await Form.findByIdAndDelete(req.params.id);
 
     return res.status(200).json({
       success: true,
