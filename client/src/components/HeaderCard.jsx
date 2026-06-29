@@ -14,7 +14,7 @@ function HeaderCard() {
 
         <div className="purple-line"></div>
 
-        <h1>Interns Details : IBM</h1>
+        <h1>Interns Details : Navadhiti</h1>
 
         <p className="subtitle">
           Please fill the details with caps, clear picture upload

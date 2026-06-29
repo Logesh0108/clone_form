@@ -6,14 +6,16 @@ function FormField({
   required = false,
   type = "text",
 }) {
+  const id = `input-${name}`;
   return (
     <div className="question-card">
-      <label className="question-title">
+      <label htmlFor={id} className="question-title">
         {label}
         {required && <span className="required">*</span>}
       </label>
 
       <input
+        id={id}
         type={type}
         name={name}
         value={value}

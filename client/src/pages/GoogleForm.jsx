@@ -12,6 +12,9 @@ import { useNavigate } from "react-router-dom";
 
 function GoogleForm() {
   const navigate = useNavigate();
+  const aadhaarRef = useRef(null);
+  const panRef = useRef(null);
+
   const [formData, setFormData] = useState({
     fullName: "",
     fatherName: "",
@@ -54,6 +57,13 @@ function GoogleForm() {
 const handleSubmit = async (e) => {
   e.preventDefault();
 
+  const isAadhaarValid = aadhaarRef.current ? aadhaarRef.current.validate() : true;
+  const isPanValid = panRef.current ? panRef.current.validate() : true;
+
+  if (!isAadhaarValid || !isPanValid) {
+    return;
+  }
+
   const data = new FormData();
 
   Object.keys(formData).forEach((key) => {
@@ -86,6 +96,13 @@ const handleSubmit = async (e) => {
         aadhaarFile: null,
         panFile: null,
       });
+
+      if (aadhaarRef.current) {
+        aadhaarRef.current.reset();
+      }
+      if (panRef.current) {
+        panRef.current.reset();
+      }
 
       // Save submission status
       localStorage.setItem("formSubmitted", "true");
@@ -122,6 +139,13 @@ const clearForm = () => {
     aadhaarFile: null,
     panFile: null,
   });
+
+  if (aadhaarRef.current) {
+    aadhaarRef.current.reset();
+  }
+  if (panRef.current) {
+    panRef.current.reset();
+  }
 };
 
   return (
@@ -156,6 +180,7 @@ const clearForm = () => {
       />
 
       <FileUpload
+        ref={aadhaarRef}
         label="Upload Aadhaar Card"
         name="aadhaarFile"
         onFileChange={handleFileChange}
@@ -170,6 +195,7 @@ const clearForm = () => {
       />
 
       <FileUpload
+        ref={panRef}
         label="Upload PAN Card"
         name="panFile"
         onFileChange={handleFileChange}
