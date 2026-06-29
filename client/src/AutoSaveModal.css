@@ -1,0 +1,94 @@
+.modal-overlay{
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+
+    z-index:999;
+}
+
+.modal{
+
+    width:350px;
+
+    background:#fff;
+
+    border-radius:8px;
+
+    padding:28px;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+
+    animation:popup .25s ease;
+}
+
+@keyframes popup{
+
+from{
+    transform:scale(.9);
+    opacity:0;
+}
+
+to{
+    transform:scale(1);
+    opacity:1;
+}
+
+}
+
+.modal-image{
+
+    width:240px;
+
+    display:block;
+
+    margin:0 auto 20px;
+}
+
+.modal h2{
+
+    font-size:18px;
+
+    font-weight:500;
+
+    margin-bottom:16px;
+}
+
+.modal p{
+
+    font-size:16px;
+
+    color:#000000;
+
+
+    line-height:1.6;
+}
+
+.ok-btn{
+
+    margin-top:24px;
+
+    float:right;
+
+    background:none;
+
+    border:none;
+
+    color:#1a73e8;
+
+    font-size:15px;
+
+    font-weight:500;
+
+    cursor:pointer;
+}
+
+.ok-btn:hover{
+
+    text-decoration:underline;
+}
